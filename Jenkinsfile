@@ -61,7 +61,7 @@ pipeline {
     post {
         always {
             echo '📄 Archiving test results...'
-             junit '**/TestResults/**/test-results.trx'
+             junit '**/test-results.trx'
         }
         success {
             echo '✅ Pipeline completed successfully!'
