@@ -3,6 +3,8 @@ pipeline {
 
     environment {
         DOTNET_ROOT = "/usr/share/dotnet"
+        CONFIGURATION = "Release"
+        PUBLISH_DIR = "./publish"
     }
 
     stages {
@@ -14,53 +16,60 @@ pipeline {
 
         stage('Restore') {
             steps {
+                echo '🔄 Restoring NuGet packages...'
                 sh 'dotnet restore'
             }
         }
 
         stage('Build') {
             steps {
-                sh 'dotnet build --configuration Release'
+                echo '🔨 Building the project...'
+                sh "dotnet build --configuration $CONFIGURATION"
             }
         }
 
         stage('Test') {
             steps {
+                echo '🧪 Running unit tests...'
                 sh 'dotnet test --logger:"trx"'
             }
         }
 
         stage('Scan') {
             steps {
-                echo 'Running security scans...'
-                // Integrate SonarQube or BlackDuck here
+                echo '🔍 Running security scans...'
+                // Example: sh 'dotnet sonarscanner begin ...'
+                // Add integration with SonarQube or BlackDuck here
             }
         }
 
         stage('Package') {
             steps {
-                sh 'dotnet publish -c Release -o ./publish'
-                archiveArtifacts artifacts: 'publish/**', fingerprint: true
+                echo '📦 Publishing build artifacts...'
+                sh "dotnet publish -c $CONFIGURATION -o $PUBLISH_DIR"
+                archiveArtifacts artifacts: "${PUBLISH_DIR}/**", fingerprint: true
             }
         }
 
         stage('Deploy') {
             steps {
-                echo 'Deploying to development environment...'
-                // Use Ansible or Helm here
+                echo '🚀 Deploying to development environment...'
+                // Example: sh 'ansible-playbook deploy.yml'
+                // Add deployment logic here
             }
         }
     }
 
     post {
         always {
-            junit '**/*.trx'
+            echo '📄 Archiving test results...'
+            junit '**/TestResults/**/*.trx'
         }
         success {
-            echo 'Pipeline completed successfully!'
+            echo '✅ Pipeline completed successfully!'
         }
         failure {
-            echo 'Pipeline failed. Check logs for details.'
+            echo '❌ Pipeline failed. Check logs for details.'
         }
     }
 }
