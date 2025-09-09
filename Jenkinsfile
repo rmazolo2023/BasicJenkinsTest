@@ -4,7 +4,7 @@ pipeline {
     environment {
         DOTNET_ROOT = "/usr/share/dotnet"
         CONFIGURATION = "Release"
-        PUBLISH_DIR = "./publish"
+        PUBLISH_DIR = "publish"
     }
 
     stages {
@@ -31,15 +31,14 @@ pipeline {
         stage('Test') {
             steps {
                 echo '🧪 Running unit tests...'
-                sh 'dotnet test --logger:"trx"'
+                sh 'dotnet test --logger:"trx;LogFileName=test-results.trx"'
             }
         }
 
         stage('Scan') {
             steps {
                 echo '🔍 Running security scans...'
-                // Example: sh 'dotnet sonarscanner begin ...'
-                // Add integration with SonarQube or BlackDuck here
+                // Add SonarQube or BlackDuck integration here
             }
         }
 
@@ -47,15 +46,14 @@ pipeline {
             steps {
                 echo '📦 Publishing build artifacts...'
                 sh "dotnet publish -c $CONFIGURATION -o $PUBLISH_DIR"
-                archiveArtifacts artifacts: "${PUBLISH_DIR}/**", fingerprint: true
+                archiveArtifacts artifacts: 'publish/**', fingerprint: true
             }
         }
 
         stage('Deploy') {
             steps {
                 echo '🚀 Deploying to development environment...'
-                // Example: sh 'ansible-playbook deploy.yml'
-                // Add deployment logic here
+                // Add Ansible, Helm, or Azure CLI deployment here
             }
         }
     }
@@ -63,7 +61,7 @@ pipeline {
     post {
         always {
             echo '📄 Archiving test results...'
-            junit '**/TestResults/**/*.trx'
+            junit 'test-results.trx'
         }
         success {
             echo '✅ Pipeline completed successfully!'
